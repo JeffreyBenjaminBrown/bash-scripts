@@ -17,6 +17,9 @@
   --exclude '/home/jeff/.local/share/Trash'                     \
   --exclude '/home/jeff/.local/share/baloo'                     \
   --exclude '/home/jeff/.stack'                                 \
+  --exclude '/home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage' \
+  --exclude '/home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage' \
+  --exclude '/home/jeff/ugh/enc.zip'                            \
   --exclude '/home/jeff/ugh/une'                                \
   --exclude '/home/jeff/javeriana/cities/output'                \
   --exclude '/home/jeff/javeriana/tax.co/data/*/older*/recip-*' \
