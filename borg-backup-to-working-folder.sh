@@ -10,22 +10,9 @@
 
 # borg create $(pwd)::critical_$(date +%Y-%m-%d) ~/ugh/enc
 
-# PITFALL -- before running this, first detach Encfs/ugh, and anything else like that.
-# borg create $(pwd)::$(date +%Y-%m-%d) /home/jeff              \
-  --exclude '/home/jeff/.cabal'                                 \
-  --exclude '/home/jeff/.cache'                                 \
-  --exclude '/home/jeff/.local/share/Trash'                     \
-  --exclude '/home/jeff/.local/share/baloo'                     \
-  --exclude '/home/jeff/.stack'                                 \
-  --exclude '/home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage' \
-  --exclude '/home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage' \
-  --exclude '/home/jeff/ugh/enc.zip'                            \
-  --exclude '/home/jeff/ugh/une'                                \
-  --exclude '/home/jeff/javeriana/cities/output'                \
-  --exclude '/home/jeff/javeriana/tax.co/data/*/older*/recip-*' \
-  --exclude '/home/jeff/javeriana/tax.co/data/*/recip-*'        \
-  --exclude '/home/jeff/javeriana/tax.co/output/vat*'           \
-  --exclude '/home/jeff/probably-to-nuke'                       \
-  --exclude '/home/jeff/.sbt'                                   \
-  --exclude '/home/jeff/Videos'                                 \
-  --exclude '/home/jeff/torrent'
+# PITFALL -- before running this, first detach anything that might be copied errneously,
+# e.g. if encf mounts it in my home folder and it's not excluded by these options.
+# echo $(date)  \
+  && borg create $(pwd)::$(date +%Y-%m-%d) /home/jeff \
+  --exclude-from /home/jeff/bash/exclude-for-borg.txt \
+  && echo $(date)
