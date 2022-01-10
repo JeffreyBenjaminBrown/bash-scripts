@@ -1,5 +1,8 @@
 #/bin/bash
 
+# USAGE: <this script> <filename.org>
+# Then send it to my cell, and open it in Listing It.
+
 # The backup function for sed renames the backup.
 # I want the *changed* file to be the one with a new name;
 # I want the old name to still point to the old content.
