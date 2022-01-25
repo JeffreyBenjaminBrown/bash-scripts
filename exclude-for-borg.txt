@@ -16,3 +16,5 @@
 /home/jeff/Videos
 /home/jeff/linux-distros
 /home/jeff/torrent
+/home/jeff/of/tax.co/users
+/home/jeff/of/tax.co/*/users

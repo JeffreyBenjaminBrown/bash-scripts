@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# to extract, go to the target destination (where the restored data should be put), and run something like this:
+# To extract, go to the target destination (where the restored data should be put), and run something like this:
 #   borg extract PATH_TO_REPO::ARCHIVE_NAME [SEARCH_PATTERN(S)]
 # The search patterns are optional.
 # For instance, to restore just ~/_stale, I did this:

@@ -2,6 +2,8 @@
 
 # USAGE: <this script> <filename.org>
 # Then send it to my cell, and open it in Listing It.
+# PITFALL: It might need me to delete the first four spaces
+# from every line.
 
 # The backup function for sed renames the backup.
 # I want the *changed* file to be the one with a new name;
@@ -22,4 +24,4 @@ sed -i -r "s/(^|[\*]) /\1- /g" $target
 
 # Replace all stars with space.
 # TODO ? Similarly, it would be better if this only replaced leading stars.
-sed -i -r "s/\*/ /g"           $target
+sed -i -r "s/\*/    /g"           $target
