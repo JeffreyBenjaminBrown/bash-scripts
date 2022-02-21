@@ -1,23 +1,25 @@
+/home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
 /home/jeff/.cabal
 /home/jeff/.cache
+/home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage
 /home/jeff/.local/share/Trash
 /home/jeff/.local/share/baloo
+/home/jeff/.sbt
 /home/jeff/.stack
-/home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
-/home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage
-/home/jeff/ugh/enc.zip
-/home/jeff/ugh/une
+/home/jeff/Videos
+/home/jeff/code/phan/bk
+/home/jeff/code/phan/quant/data
 /home/jeff/javeriana/cities/output
-/home/jeff/javeriana/tax.co/data/*/older*/recip-*
-/home/jeff/javeriana/tax.co/data/*/recip-*
-/home/jeff/javeriana/tax.co/output/vat*
 /home/jeff/javeriana/tax.co/*/data/*/older*/recip-*
 /home/jeff/javeriana/tax.co/*/data/*/recip-*
 /home/jeff/javeriana/tax.co/*/output/vat*
-/home/jeff/probably-to-nuke
-/home/jeff/.sbt
-/home/jeff/Videos
+/home/jeff/javeriana/tax.co/data/*/older*/recip-*
+/home/jeff/javeriana/tax.co/data/*/recip-*
+/home/jeff/javeriana/tax.co/output/vat*
 /home/jeff/linux-distros
-/home/jeff/torrent
-/home/jeff/of/tax.co/users
 /home/jeff/of/tax.co/*/users
+/home/jeff/of/tax.co/users
+/home/jeff/probably-to-nuke
+/home/jeff/torrent
+/home/jeff/ugh/enc.zip
+/home/jeff/ugh/une
