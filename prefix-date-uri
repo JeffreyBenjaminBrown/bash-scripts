@@ -1,1 +1,1 @@
-mv $1 $(date +"%y-%m-%d")-$(random.sh 8).$1
+mv $1 20$(date +"%y-%m-%d")-$(random.sh 8).$1
