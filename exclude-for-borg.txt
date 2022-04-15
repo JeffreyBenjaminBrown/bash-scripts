@@ -7,8 +7,6 @@
 /home/jeff/.sbt
 /home/jeff/.stack
 /home/jeff/Videos
-/home/jeff/code/phan/bk
-/home/jeff/code/phan/quant/data
 /home/jeff/javeriana/cities/output
 /home/jeff/javeriana/tax.co/*/data/*/older*/recip-*
 /home/jeff/javeriana/tax.co/*/data/*/recip-*
