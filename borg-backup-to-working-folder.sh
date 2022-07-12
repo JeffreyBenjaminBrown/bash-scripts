@@ -12,9 +12,8 @@
 
 # PITFALL -- before running this, first detach anything that might be copied errneously,
 # e.g. if encf mounts it in my home folder and it's not excluded by these options.
-# echo I started running \"borg create\" at:                \
-  && echo $(date)                                           \
-  && cd /run/media/jeff/ssd_500g_samsung/borg-repo          \
-  && borg create $(pwd)::$(date +%Y-%m-%d).hp17 /home/jeff  \
-  --exclude-from /home/jeff/bin/exclude-for-borg.txt        \
-  && echo $(date)
+# echo I started running \"borg create\" at:
+  echo $(date)
+  cd /run/media/jeff/ssd_500g_samsung/borg-repo
+  borg create $(pwd)::$(date +%Y-%m-%d).hp17 /home/jeff \
+    --exclude-from /home/jeff/bin/exclude-for-borg.txt &
