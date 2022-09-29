@@ -4,4 +4,4 @@
 # Unmount with this:
 # fusermount -u ~/ugh/une
 
-encfs ~/ugh/enc ~/ugh/une
+encfs /home/jeff/ugh/enc /home/jeff/ugh/une

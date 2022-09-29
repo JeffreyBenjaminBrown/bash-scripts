@@ -16,4 +16,4 @@
   echo $(date)
   cd /run/media/jeff/ssd_500g_samsung/borg-repo
   borg create $(pwd)::$(date +%Y-%m-%d).hp17 /home/jeff \
-    --exclude-from /home/jeff/bin/exclude-for-borg.txt &
+    --exclude-from /home/jeff/bin/exclude-for-borg.txt
