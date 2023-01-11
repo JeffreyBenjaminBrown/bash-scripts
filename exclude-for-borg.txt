@@ -6,6 +6,7 @@
 /home/jeff/.local/share/baloo
 /home/jeff/.sbt
 /home/jeff/.stack
+/home/jeff/enc,org.zip
 /home/jeff/Videos
 /home/jeff/javeriana/cities/output
 /home/jeff/javeriana/tax.co/*/data/*/older*/recip-*
