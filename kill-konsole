@@ -1,0 +1,1 @@
+ps | find name /run/current-system/sw/bin/dolphin | get pid | take 1 | kill $in
