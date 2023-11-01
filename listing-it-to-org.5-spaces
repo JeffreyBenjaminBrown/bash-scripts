@@ -1,0 +1,27 @@
+# USAGE:
+# The argument to this should be the basename
+# (that is, with no file extension) of the file to transform
+# from ".li" (my chosen extension to mean "Listing It")
+# to ".org".
+
+cp $1.li $1.org
+sed -i "s/^                                                                                               [^ ] /******************** /g" $1.org
+sed -i "s/^                                                                                          [^ ] /******************* /g" $1.org
+sed -i "s/^                                                                                     [^ ] /****************** /g" $1.org
+sed -i "s/^                                                                                [^ ] /***************** /g" $1.org
+sed -i "s/^                                                                           [^ ] /**************** /g" $1.org
+sed -i "s/^                                                                      [^ ] /*************** /g" $1.org
+sed -i "s/^                                                                 [^ ] /************** /g" $1.org
+sed -i "s/^                                                            [^ ] /************* /g" $1.org
+sed -i "s/^                                                       [^ ] /************ /g" $1.org
+sed -i "s/^                                                  [^ ] /*********** /g" $1.org
+sed -i "s/^                                             [^ ] /********** /g" $1.org
+sed -i "s/^                                        [^ ] /********* /g" $1.org
+sed -i "s/^                                   [^ ] /******** /g" $1.org
+sed -i "s/^                              [^ ] /******* /g" $1.org
+sed -i "s/^                         [^ ] /****** /g" $1.org
+sed -i "s/^                    [^ ] /***** /g" $1.org
+sed -i "s/^               [^ ] /**** /g" $1.org
+sed -i "s/^          [^ ] /*** /g" $1.org
+sed -i "s/^     [^ ] /** /g" $1.org
+sed -i "s/^[^ ] /* /g" $1.org
