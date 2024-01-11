@@ -7,6 +7,7 @@ do
     elif [ $battery_level -le 75 ]; then
       notify-send --urgency=CRITICAL "Battery Low" "Level: ${battery_level}%"
       paplay /usr/share/sounds/freedesktop/stereo/suspend-error.oga
+      sleep 300 # to prevent redundant notifications
   fi
  sleep 60
 done
