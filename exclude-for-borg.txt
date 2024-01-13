@@ -11,6 +11,7 @@
 /home/jeff/.local/share/baloo
 /home/jeff/.sbt
 /home/jeff/.stack
+/home/jeff/borg-repo
 /home/jeff/enc,org.zip
 /home/jeff/Videos
 /home/jeff/javeriana/cities/output
