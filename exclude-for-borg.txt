@@ -3,6 +3,8 @@
 **/.pytest_cache
 **/dist-newstyle
 
+/home/jeff/excluded-from-borg
+
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
 /home/jeff/.cabal
 /home/jeff/.cache
