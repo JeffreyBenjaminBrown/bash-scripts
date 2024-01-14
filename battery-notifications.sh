@@ -1,3 +1,13 @@
+# PURPOSE
+# This makes audible and visible announcements
+# when the power cable should be connected or disconnected.
+
+# USAGE
+# Provide two numerical arguments from (say) 20 to 80,
+# the first lower than the second.
+# These are the percentages you would like the battery
+# to remain between.
+
 while true; do
   acpi_message=`acpi`
   battery_level=`acpi -b | grep -P -o '[0-9]+(?=%)'`
