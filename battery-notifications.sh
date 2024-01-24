@@ -25,16 +25,14 @@ while true; do
     notify-send --urgency=CRITICAL \
                   "Battery Low (${battery_level}%) and discharging"
     aplay -q ~/Audio/battery-low$suffix.wav
-    echo    "~/Audio/battery-low$suffix.wav"
-    sleep 180 # to prevent redundant notifications
+    sleep 120 # to prevent redundant notifications
 
   elif [ $battery_level -ge $2          ] && \
        [[ $acpi_message = *' Charging'* ]]; then
     notify-send --urgency=CRITICAL \
                   "Battery High (${battery_level}%) and charging"
     aplay -q ~/Audio/battery-high$suffix.wav
-    echo    "~/Audio/battery-high$suffix.wav"
-    sleep 180 # to prevent redundant notifications
+    sleep 120 # to prevent redundant notifications
   fi
 
   sleep 60
