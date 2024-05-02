@@ -5,7 +5,11 @@
 
 /home/jeff/excluded-from-borg
 
+/home/jeff/dian/hunting-horses/data
+
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
+/home/jeff/.mozilla
+/home/jeff/.vscode
 /home/jeff/.cabal
 /home/jeff/.cache
 /home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage
@@ -13,7 +17,7 @@
 /home/jeff/.local/share/baloo
 /home/jeff/.sbt
 /home/jeff/.stack
-/home/jeff/borg-repo
+/home/jeff/borg-repo*
 /home/jeff/enc,org.zip
 /home/jeff/Videos
 /home/jeff/javeriana/cities/output
