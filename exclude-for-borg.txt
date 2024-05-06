@@ -34,3 +34,4 @@
 /home/jeff/torrent
 /home/jeff/ugh/enc.zip
 /home/jeff/ugh/une
+/home/jeff/Audiobooks
