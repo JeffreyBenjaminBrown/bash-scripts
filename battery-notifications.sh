@@ -32,7 +32,6 @@ while true; do
   if [ $battery_level -le $1          ] && \
      [[ $acpi_message = *'Discharging'* ]]; then
         notify-send          \
-          --urgency=CRITICAL \
           -t 180000          \
           "Battery Low (${battery_level}%) and discharging"
         aplay -q ~/Audio/battery-low$suffix.wav
@@ -41,7 +40,6 @@ while true; do
   elif [ $battery_level -ge $2          ] && \
        [[ $acpi_message = *' Charging'* ]]; then
         notify-send          \
-          --urgency=CRITICAL \
           -t 180000          \
           "Battery High (${battery_level}%) and charging"
         aplay -q ~/Audio/battery-high$suffix.wav

@@ -1,7 +1,14 @@
-**/__pycache__
-**/.mypy_cache
-**/.pytest_cache
-**/dist-newstyle
+# PITFALL: Path separators are not treated differently
+#   from other characters when matching against a single wildcard
+#   (*) in the default match syntax, "Fnmatch".
+#   For more fine-grained control,
+#   I could use shell-selector syntax,
+#   or something else.
+
+/*__pycache__
+/*.mypy_cache
+/*.pytest_cache
+/*dist-newstyle
 
 /home/jeff/excluded-from-borg
 
@@ -34,4 +41,6 @@
 /home/jeff/torrent
 /home/jeff/ugh/enc.zip
 /home/jeff/ugh/une
-/home/jeff/Audiobooks
+/home/jeff/Books/*.mp3
+/home/jeff/Books/*.m4b
+/home/jeff/Books/*.zip
