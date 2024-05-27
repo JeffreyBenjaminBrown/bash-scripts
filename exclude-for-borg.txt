@@ -9,6 +9,7 @@
 /*.mypy_cache
 /*.pytest_cache
 /*dist-newstyle
+/*.venv
 
 /home/jeff/excluded-from-borg
 
