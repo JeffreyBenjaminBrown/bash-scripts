@@ -25,7 +25,7 @@
 /home/jeff/.sbt
 /home/jeff/.stack
 /home/jeff/borg-repo*
-/home/jeff/enc,org.zip
+/home/jeff/enc,org*.zip
 /home/jeff/Videos
 /home/jeff/javeriana/cities/output
 /home/jeff/javeriana/tax.co/*/data/*/older*/recip-*
@@ -44,3 +44,4 @@
 /home/jeff/Books/*.mp3
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
+/home/jeff/.npm
