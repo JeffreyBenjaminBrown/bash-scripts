@@ -9,20 +9,24 @@
 /*.mypy_cache
 /*.pytest_cache
 /*dist-newstyle
-/*.venv
+*/venv
+*/.venv
 
 /home/jeff/excluded-from-borg
 
 /home/jeff/dian/hunting-horses/data
 
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
+/home/jeff/.config/Code
+/home/jeff/.config/google-chrome/
+/home/jeff/.config/teams-for-linux
 /home/jeff/.mozilla
 /home/jeff/.vscode
 /home/jeff/.cabal
 /home/jeff/.cache
-/home/jeff/.config/google-chrome/Default/Service Worker/CacheStorage
 /home/jeff/.local/share/Trash
 /home/jeff/.local/share/baloo
+/home/jeff/.local/share/docker/
 /home/jeff/.sbt
 /home/jeff/.stack
 /home/jeff/borg-repo*
