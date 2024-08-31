@@ -16,6 +16,20 @@ else
     suffix=""
 fi
 
+unplug_message () { # PITFALL: Uses an argument, called $1.
+  notify-send          \
+    -t 180000          \
+    "Battery Low (${1}%) and discharging"
+  aplay -q ~/Audio/battery-low$suffix.wav
+}
+
+plug_message (){  # PITFALL: Uses an argument, called $1.
+  notify-send          \
+    -t 180000          \
+    "Battery High (${1}%) and charging"
+  aplay -q ~/Audio/battery-high$suffix.wav
+}
+
 while true; do
   # TODO : To prevent the buildup of redundant messages,
   # this expires each message after 180 seconds
@@ -28,22 +42,17 @@ while true; do
   # rather than appearing in multiple places.
   acpi_message=`acpi`
   battery_level=`acpi -b | grep -P -o '[0-9]+(?=%)'`
+    # The longest set of digits immediately followed by "%".
 
-  if [ $battery_level -le $1          ] && \
-     [[ $acpi_message = *'Discharging'* ]]; then
-        notify-send          \
-          -t 180000          \
-          "Battery Low (${battery_level}%) and discharging"
-        aplay -q ~/Audio/battery-low$suffix.wav
-        sleep 120 # to prevent redundant notifications
+  if   [ $battery_level -le $1              ] && \
+       [[   $acpi_message = *'Discharging'* ]]; then
+      unplug_message $battery_level
+      sleep 120 # to prevent redundant notifications
 
-  elif [ $battery_level -ge $2          ] && \
-       [[ $acpi_message = *' Charging'* ]]; then
-        notify-send          \
-          -t 180000          \
-          "Battery High (${battery_level}%) and charging"
-        aplay -q ~/Audio/battery-high$suffix.wav
-        sleep 120 # to prevent redundant notifications
+  elif [ $battery_level -ge $2              ] && \
+       [[ ! $acpi_message = *'Discharging'* ]]; then
+      plug_message $battery_level
+      sleep 120 # to prevent redundant notifications
   fi
 
   sleep 60
