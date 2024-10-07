@@ -23,12 +23,14 @@
 /home/jeff/.mozilla
 /home/jeff/.vscode
 /home/jeff/.cabal
+/home/jeff/.local/state/cabal/
 /home/jeff/.cache
 /home/jeff/.local/share/Trash
 /home/jeff/.local/share/baloo
 /home/jeff/.local/share/docker/
 /home/jeff/.sbt
 /home/jeff/.stack
+/home/jeff/.wine
 /home/jeff/borg-repo*
 /home/jeff/enc,org*.zip
 /home/jeff/Videos
@@ -47,6 +49,7 @@
 /home/jeff/ugh/enc.zip
 /home/jeff/ugh/une
 /home/jeff/Books/*.mp3
+/home/jeff/Books/*.m4a
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
 /home/jeff/.npm
