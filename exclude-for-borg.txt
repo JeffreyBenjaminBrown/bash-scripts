@@ -13,7 +13,6 @@
 */.venv
 
 /home/jeff/excluded-from-borg
-
 /home/jeff/dian/hunting-horses/data
 
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
@@ -53,3 +52,5 @@
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
 /home/jeff/.npm
+
+/home/jeff/code/agora/agora/garden
