@@ -1,20 +1,25 @@
+# PITFALL: For infuriating reasons
+#   with which I battled for maybe an hour and do not understand,
+#   this file cannot have any empty lines,
+#   and cannot end in a newline.
+#
 # PITFALL: Path separators are not treated differently
 #   from other characters when matching against a single wildcard
 #   (*) in the default match syntax, "Fnmatch".
 #   For more fine-grained control,
 #   I could use shell-selector syntax,
 #   or something else.
-
+##
 /*__pycache__
 /*.mypy_cache
 /*.pytest_cache
 /*dist-newstyle
 */venv
 */.venv
-
+##
 /home/jeff/excluded-from-borg
 /home/jeff/dian/hunting-horses/data
-
+##
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
 /home/jeff/.config/Code
 /home/jeff/.config/google-chrome/
@@ -52,5 +57,5 @@
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
 /home/jeff/.npm
-
+##
 /home/jeff/code/agora/agora/garden
