@@ -59,3 +59,4 @@
 /home/jeff/.npm
 ##
 /home/jeff/code/agora/agora/garden
+/home/jeff/Documents/IK\ Multimedia
