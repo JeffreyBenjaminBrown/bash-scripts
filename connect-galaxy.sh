@@ -1,0 +1,1 @@
+/home/jeff/ugh/une/text-in-git/code-ish/connection-scripts/connect-galaxy.sh

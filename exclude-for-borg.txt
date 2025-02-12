@@ -29,6 +29,7 @@
 /home/jeff/.cabal
 /home/jeff/.local/state/cabal/
 /home/jeff/.cache
+/home/jeff/.local/share/Steam
 /home/jeff/.local/share/Trash
 /home/jeff/.local/share/baloo
 /home/jeff/.local/share/docker/
@@ -60,3 +61,4 @@
 ##
 /home/jeff/code/agora/agora/garden
 /home/jeff/Documents/IK\ Multimedia
+sh:/home/jeff/Documents/REAPER Media/**/*.[wW][aA][vV]$
