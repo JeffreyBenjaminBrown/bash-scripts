@@ -8,7 +8,7 @@
 # Part of the problem is that (>) in Bash appends a newline.
 
 EXCLUDE=/home/jeff/bin/exclude-for-borg.txt
-OUTPUT=/home/jeff/org-roam/pers/memory_used_in_home_folder.org
+OUTPUT=/home/jeff/org-roam/personal/memory_used_in_home_folder.org
 
 # Based on du-biggest-recursive.sh,
 # which is *almost* more general, but it excludes nothing.
