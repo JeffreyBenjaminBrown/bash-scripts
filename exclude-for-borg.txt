@@ -10,12 +10,14 @@
 #   I could use shell-selector syntax,
 #   or something else.
 ##
-/*__pycache__
-/*.mypy_cache
-/*.pytest_cache
-/*dist-newstyle
-*/venv
-*/.venv
+/home/jeff/**/__pycache__
+/home/jeff/**/.mypy_cache
+/home/jeff/**/.pytest_cache
+/home/jeff/**/dist-newstyle
+/home/jeff/**/venv
+/home/jeff/**/.venv
+/home/jeff/**/.npm
+/home/jeff/**/.claude*
 ##
 /home/jeff/excluded-from-borg
 /home/jeff/dian/hunting-horses/data
@@ -27,10 +29,11 @@
 /home/jeff/.mozilla
 /home/jeff/.vscode
 /home/jeff/.cabal
-/home/jeff/.local/state/cabal/
+/home/jeff/.local/state
 /home/jeff/.cache
 /home/jeff/.local/share/Steam
 /home/jeff/.local/share/Trash
+/home/jeff/.local/share/TelegramDesktop/tdata/emoji
 /home/jeff/.local/share/baloo
 /home/jeff/.local/share/docker/
 /home/jeff/.sbt
@@ -58,7 +61,15 @@
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
 /home/jeff/.npm
+/home/jeff/mincit/assemble-data-for-EE/data
+/home/jeff/mincit/assemble-data-for-EE/data-bk
 ##
 /home/jeff/code/agora/agora/garden
 /home/jeff/Documents/IK\ Multimedia
 sh:/home/jeff/Documents/REAPER Media/**/*.[wW][aA][vV]$
+/home/jeff/claude/osc-gen/org-roam
+/home/jeff/code/cpp-for-org-roam-db/org-roam
+##
+# For Rust projects
+/home/jeff/.cargo
+sh:/home/jeff/**/target/debug/**
