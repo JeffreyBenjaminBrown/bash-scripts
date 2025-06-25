@@ -6,18 +6,13 @@
 case "$1" in
     "jeff")
         nmcli connection up "Jeff's Galaxy"
-        echo ""
-        echo "WARNING: this network:"
-        echo "  can't do cargo (rust)"
+        echo "can't do cargo (rust)"
         ;;
     "mincit")
         nmcli connection up WIFI_MOVILES_MINCIT
-        echo ""
-        echo "WARNING: this network:"
-        echo "  can't do cargo (rust)"
-        echo "  can't do apt (ubuntu, debian)"
-        echo "BUT it can:"
-        echo "  ssh to github,"
+        echo "can ssh to github,"
+        echo "can't do cargo (rust)"
+        echo "can't do apt (ubuntu, debian)"
         ;;
     *)
         echo "Usage: wifi.sh [jeff|mincit]"
