@@ -61,6 +61,7 @@
 /home/jeff/Books/*.m4b
 /home/jeff/Books/*.zip
 /home/jeff/.npm
+/home/jeff/.npm-global
 /home/jeff/mincit/assemble-data-for-EE/data
 /home/jeff/mincit/assemble-data-for-EE/data-bk
 ##
