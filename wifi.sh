@@ -1,7 +1,7 @@
 #!/run/current-system/sw/bin/bash
 
 # WiFi connection script
-# Usage: wifi [jeff|mincit]
+# Usage: wifi.sh [jeff|mincit]
 
 case "$1" in
     "jeff")
@@ -12,7 +12,8 @@ case "$1" in
     "moviles")
         nmcli connection up WIFI_MOVILES_MINCIT
         echo ""
-        echo "can ssh to github,"
+        echo "can ssh to github"
+        echo "can fetch nix packages"
         echo "cannot do cargo (rust)"
         echo "cannot do apt (ubuntu, debian)"
         ;;
