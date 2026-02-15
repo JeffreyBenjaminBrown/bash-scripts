@@ -8,18 +8,24 @@
 # Part of the problem is that (>) in Bash appends a newline.
 
 EXCLUDE=/home/jeff/bin/exclude-for-borg.txt
-OUTPUT=/home/jeff/org-roam/personal/memory_used_in_home_folder.org
+OUTPUT=/home/jeff/org-roam/personal-proc/memory_used_in_home_folder.org
+
+# See the header comment for why this helps.
+EXCLUDE_CLEAN=$(mktemp)
+grep -v '^[[:space:]]*$' "$EXCLUDE" > "$EXCLUDE_CLEAN"
 
 # Based on du-biggest-recursive.sh,
 # which is *almost* more general, but it excludes nothing.
 VERBOSE=$(mktemp)
 du -a -Bk                    \
     /home/jeff               \
-     --exclude-from=$EXCLUDE \
+     --exclude-from=$EXCLUDE_CLEAN \
     | sort -n -r             \
     | head -n 500 \
     > $VERBOSE
 
 # Remove every line from VERBOSE containing an entire line from EXCLUDE
 # See `strip-files/` for more detail and test data.
-grep -vFf $EXCLUDE $VERBOSE > $OUTPUT
+grep -vFf $EXCLUDE_CLEAN $VERBOSE > $OUTPUT
+
+rm $EXCLUDE_CLEAN $VERBOSE

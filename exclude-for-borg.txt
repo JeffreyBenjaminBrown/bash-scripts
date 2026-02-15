@@ -2,6 +2,8 @@
 #   with which I battled for maybe an hour and do not understand,
 #   this file cannot have any empty lines,
 #   and cannot end in a newline.
+#   Disable the automatic addition of a trailing newline in Emacs with
+#     (???)
 #
 # PITFALL: Path separators are not treated differently
 #   from other characters when matching against a single wildcard
@@ -9,68 +11,62 @@
 #   For more fine-grained control,
 #   I could use shell-selector syntax,
 #   or something else.
-##
-/home/jeff/**/__pycache__
-/home/jeff/**/.mypy_cache
-/home/jeff/**/.pytest_cache
-/home/jeff/**/dist-newstyle
-/home/jeff/**/venv
-/home/jeff/**/.venv
-/home/jeff/**/.npm
-/home/jeff/**/.claude*
-##
-/home/jeff/excluded-from-borg
-/home/jeff/dian/hunting-horses/data
-##
+**/.cabal
+**/.cache
+**/.claude
+**/.claude*
+**/.local/state
+**/.mozilla
+**/.mypy_cache
+**/.npm
+**/.npm
+**/.npm-global
+**/.pytest_cache
+**/.sbt
+**/.spago
+**/.stack
+**/.venv
+**/.vscode
+**/.wine
+**/__pycache__
+**/dist-newstyle
+**/index.tantivy
+**/node_modules
+**/target/debug
+**/venv
 /home/jeff/.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage
 /home/jeff/.config/Code
 /home/jeff/.config/google-chrome/
 /home/jeff/.config/teams-for-linux
-/home/jeff/.mozilla
-/home/jeff/.vscode
-/home/jeff/.cabal
-/home/jeff/.local/state
-/home/jeff/.cache
 /home/jeff/.local/share/Steam
-/home/jeff/.local/share/Trash
 /home/jeff/.local/share/TelegramDesktop/tdata/emoji
+/home/jeff/.local/share/Trash
 /home/jeff/.local/share/baloo
 /home/jeff/.local/share/docker/
-/home/jeff/.sbt
-/home/jeff/.stack
-/home/jeff/.wine
-/home/jeff/borg-repo*
-/home/jeff/enc,org*.zip
+/home/jeff/Books/**/*.m4a
+/home/jeff/Books/**/*.m4b
+/home/jeff/Books/**/*.mp3
+/home/jeff/Books/**/*.zip
+/home/jeff/Documents/IK\ Multimedia
+/home/jeff/Documents/REAPER Media/**/*.WAV
+/home/jeff/Documents/REAPER Media/**/*.Wav
+/home/jeff/Documents/REAPER Media/**/*.wav
 /home/jeff/Videos
+/home/jeff/borg-repo*
+/home/jeff/claude/osc-gen/org-roam
+/home/jeff/code/agora/agora/garden
+/home/jeff/code/cpp-for-org-roam-db/org-roam
+/home/jeff/dian/hunting-horses/data
+/home/jeff/enc,org*.zip
+/home/jeff/excluded-from-borg
 /home/jeff/javeriana/cities/output
-/home/jeff/javeriana/tax.co/*/data/*/older*/recip-*
-/home/jeff/javeriana/tax.co/*/data/*/recip-*
-/home/jeff/javeriana/tax.co/*/output/vat*
-/home/jeff/javeriana/tax.co/data/*/older*/recip-*
-/home/jeff/javeriana/tax.co/data/*/recip-*
-/home/jeff/javeriana/tax.co/output/vat*
+/home/jeff/javeriana/tax.co/**/output/vat*
+/home/jeff/javeriana/tax.co/**/recip-*
 /home/jeff/linux-distros
-/home/jeff/of/tax.co/*/users
-/home/jeff/of/tax.co/users
+/home/jeff/mincit/assemble-data-for-EE/data
+/home/jeff/mincit/assemble-data-for-EE/data-bk
+/home/jeff/of/tax.co/**/users
 /home/jeff/probably-to-nuke
 /home/jeff/torrent
 /home/jeff/ugh/enc.zip
 /home/jeff/ugh/une
-/home/jeff/Books/*.mp3
-/home/jeff/Books/*.m4a
-/home/jeff/Books/*.m4b
-/home/jeff/Books/*.zip
-/home/jeff/.npm
-/home/jeff/.npm-global
-/home/jeff/mincit/assemble-data-for-EE/data
-/home/jeff/mincit/assemble-data-for-EE/data-bk
-##
-/home/jeff/code/agora/agora/garden
-/home/jeff/Documents/IK\ Multimedia
-sh:/home/jeff/Documents/REAPER Media/**/*.[wW][aA][vV]$
-/home/jeff/claude/osc-gen/org-roam
-/home/jeff/code/cpp-for-org-roam-db/org-roam
-##
-# For Rust projects
-/home/jeff/.cargo
-sh:/home/jeff/**/target/debug/**
