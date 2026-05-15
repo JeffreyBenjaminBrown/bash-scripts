@@ -16,10 +16,20 @@ else
     suffix=""
 fi
 
+flash_screen () {
+  for _ in 1 2 3; do
+    xcalib -i -a >/dev/null 2>&1
+    sleep 0.15
+    xcalib -i -a >/dev/null 2>&1
+    sleep 0.15
+  done
+}
+
 unplug_message () { # PITFALL: Uses an argument, called $1.
   notify-send          \
     -t 180000          \
     "Battery Low (${1}%) and discharging"
+  flash_screen
   aplay -q ~/Audio/battery-low$suffix.wav
 }
 

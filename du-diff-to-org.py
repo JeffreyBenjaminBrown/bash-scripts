@@ -1,1 +1,1 @@
-/home/jeff/hodal/skg/off-topic/memory-diff/du-diff-to-org.py
+/home/jeff/hodal/skg/_burying/off-topic/memory-diff/du-diff-to-org.py
