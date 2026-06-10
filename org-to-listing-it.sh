@@ -12,8 +12,9 @@
 # I futz names myself, and edit in place ("-i").
 # Since Listing It can only open .txt files,
 # I need the stupid-looking "org.txt" extension.
-target=$1.txt
-cp $1 $target
+src=$1.org
+target=$1.li
+cp $src $target
 
 # Put a dash after groups of stars.
 # TODO ? I wish this only changed the first group of stars,
