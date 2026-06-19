@@ -4,4 +4,4 @@
 # Unmount with this:
 # fusermount -u ~/ugh/une
 
-encfs /home/jeff/ugh/enc /home/jeff/ugh/une
+gocryptfs /home/jeff/ugh/enc /home/jeff/ugh/une
