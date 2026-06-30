@@ -37,6 +37,7 @@ plug_message (){  # PITFALL: Uses an argument, called $1.
   notify-send          \
     -t 180000          \
     "Battery High (${1}%) and charging"
+  flash_screen
   aplay -q ~/Audio/battery-high$suffix.wav
 }
 
