@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+### USAGE
+# Run
+#   myMainWorkflow
+# (myXfceWorkspaces runs it for you in the Kitty on workspace 1.)
+#
+### WHAT IT DOES
+# 1. Asks for your Xfce password, which it uses to answer ssh-add.
+# 2. Starts the tmux server "main" DETACHED, the way myTmux would
+#    (same sed on ~/.tmux.conf), and waits for resurrect/continuum
+#    to restore the saved sessions.
+# 3. Kills session 0.
+# 4. battery:0  -> clock | battery-notifications.sh 45 70 / watch acpi
+# 5. skg, skg2, skg3:
+#      windows 0 and 1: docker exec -it skg bash
+#      window 0:        claude --dangerously-skip-permissions (in docker)
+#      window 2:        ssh-agent bash; ssh-add (password typed for you)
+#    skg window 1:      ./bash/start-servers & (in docker)
+# 6. Sets the server option @myMainWorkflowReady to 1
+#    (the Kitties on workspaces 2 and 3 wait for this),
+#    then attaches to session skg, window 2.
+#
+### WHY NOT JUST CALL myTmux?
+# myTmux attaches immediately, so nothing after it would run
+# until you detached. This script starts the server detached instead,
+# does the setup, and attaches at the end.
+#
+### SECURITY NOTE
+# The password never appears on a command line (where `ps` could see it).
+# It goes into tmux via stdin (load-buffer -), is pasted into the
+# ssh-add prompt, and the buffer is deleted immediately.
+#
+### IF THE SERVER IS ALREADY RUNNING
+# It skips all setup and just attaches.
+
+set -u
+
+### SETTINGS
+SERVER=main
+T=(tmux -L "$SERVER")
+DOCKER_CONTAINER=skg
+SKG_SESSIONS=(skg skg2 skg3)
+READY_FLAG=@myMainWorkflowReady
+# How your "Alt-J h" split is done. tmux's -h puts the new pane to the
+# right; -v puts it below. Swap these if your binding does the opposite.
+SPLIT_FIRST=-h
+SPLIT_SECOND=-v
+# Seconds to wait after "docker exec" starts before typing into the
+# container's shell.
+DOCKER_SETTLE=2
+# Used only if continuum doesn't restore the sessions by itself.
+RESURRECT_RESTORE="$HOME/.tmux/plugins/tmux-resurrect/scripts/restore.sh"
+
+### HELPERS
+say()  { echo "myMainWorkflow: $*"; }
+warn() { echo "myMainWorkflow: WARNING: $*" >&2; }
+die()  { echo "myMainWorkflow: ERROR: $*" >&2; exit 1; }
+
+# wait_until <seconds> <command...>: retry command until it succeeds.
+wait_until() {
+  local end=$((SECONDS + $1)); shift
+  until "$@"; do
+    (( SECONDS >= end )) && return 1
+    sleep 0.5
+  done
+}
+
+attach_main() {
+  "${T[@]}" select-window -t "=skg:2" 2>/dev/null
+  exec "${T[@]}" attach -t "=skg"
+}
+
+all_sessions_present() {
+  local s
+  for s in battery "${SKG_SESSIONS[@]}"; do
+    "${T[@]}" has-session -t "=$s" 2>/dev/null || return 1
+  done
+}
+
+pane_is_in_docker() {
+  [ "$("${T[@]}" display -p -t "$1" '#{pane_current_command}')" = docker ]
+}
+
+# True when the last non-blank line of the pane is ssh-add's prompt.
+pane_wants_passphrase() {
+  "${T[@]}" capture-pane -p -t "$1" \
+    | grep -v '^[[:space:]]*$' | tail -n1 | grep -qi 'passphrase'
+}
+
+### PRECHECKS
+command -v tmux >/dev/null || die "tmux not found."
+[ -n "${TMUX:-}" ] && die "run this from outside tmux."
+
+if "${T[@]}" has-session 2>/dev/null; then
+  say "tmux server '$SERVER' is already running; attaching without setup."
+  "${T[@]}" set -g "$READY_FLAG" 1
+  attach_main
+fi
+
+### 1. PASSWORD
+echo "I need your Xfce password. It's used to run ssh-add in"
+echo "window 2 of sessions ${SKG_SESSIONS[*]}."
+read -rsp "Password: " PW; echo
+[ -n "$PW" ] || die "empty password."
+
+if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$DOCKER_CONTAINER"; then
+  warn "docker container '$DOCKER_CONTAINER' doesn't appear to be running."
+  read -rp "Continue anyway? [y/N] " answer
+  [[ $answer == [yY]* ]] || exit 1
+fi
+
+### 2. START THE SERVER (the myTmux part, but detached)
+sed -i --follow-symlinks "s/^.*resurrect-dir.*\$/set -g @resurrect-dir \"~\/\.tmux\/resurrect\/$SERVER\"/g" ~/.tmux.conf
+"${T[@]}" new-session -d -s 0 -x "$(tput cols)" -y "$(tput lines)" \
+  || die "could not start tmux server '$SERVER'."
+
+if [ "$("${T[@]}" show -gqv @continuum-restore)" = on ]; then
+  say "waiting for tmux-continuum to restore sessions..."
+  wait_until 20 all_sessions_present
+fi
+if ! all_sessions_present; then
+  [ -x "$RESURRECT_RESTORE" ] || die "sessions not restored, and $RESURRECT_RESTORE not found."
+  say "restoring sessions with tmux-resurrect..."
+  "${T[@]}" run-shell "$RESURRECT_RESTORE"
+  wait_until 60 all_sessions_present || die "sessions still missing after restore."
+fi
+sleep 2   # let the restored panes' shells start
+
+### 3. KILL SESSION 0
+"${T[@]}" has-session -t "=0" 2>/dev/null && "${T[@]}" kill-session -t "=0"
+
+### 4. BATTERY SESSION
+say "setting up battery:0..."
+"${T[@]}" clock-mode -t "=battery:0"
+p1=$("${T[@]}" split-window "$SPLIT_FIRST" -t "=battery:0" -P -F '#{pane_id}')
+"${T[@]}" send-keys -t "$p1" 'battery-notifications.sh 45 70' Enter
+p2=$("${T[@]}" split-window "$SPLIT_SECOND" -t "$p1" -P -F '#{pane_id}')
+"${T[@]}" send-keys -t "$p2" 'watch acpi' Enter
+
+### 5. SKG SESSIONS
+say "entering docker and starting ssh-agent in ${SKG_SESSIONS[*]}..."
+for s in "${SKG_SESSIONS[@]}"; do
+  for w in 0 1; do
+    "${T[@]}" send-keys -t "=$s:$w" "docker exec -it $DOCKER_CONTAINER bash" Enter
+  done
+  "${T[@]}" send-keys -t "=$s:2" 'ssh-agent bash' Enter
+  sleep 0.5
+  "${T[@]}" send-keys -t "=$s:2" 'ssh-add' Enter
+done
+
+# Answer ssh-add.
+for s in "${SKG_SESSIONS[@]}"; do
+  if wait_until 20 pane_wants_passphrase "=$s:2"; then
+    printf '%s' "$PW" | "${T[@]}" load-buffer -b myMainWorkflow_pw -
+    "${T[@]}" paste-buffer -d -b myMainWorkflow_pw -t "=$s:2"
+    "${T[@]}" send-keys -t "=$s:2" Enter
+  else
+    warn "no ssh-add passphrase prompt in $s:2; you may need to run ssh-add there yourself."
+  fi
+done
+"${T[@]}" delete-buffer -b myMainWorkflow_pw 2>/dev/null
+unset PW
+
+# Wait for docker, then run things inside the containers.
+declare -A in_docker=()
+for s in "${SKG_SESSIONS[@]}"; do
+  for w in 0 1; do
+    if wait_until 30 pane_is_in_docker "=$s:$w"; then
+      in_docker[$s:$w]=1
+    else
+      warn "$s:$w never entered docker; skipping its commands."
+    fi
+  done
+done
+sleep "$DOCKER_SETTLE"
+
+for s in "${SKG_SESSIONS[@]}"; do
+  [ -n "${in_docker[$s:0]:-}" ] && \
+    "${T[@]}" send-keys -t "=$s:0" 'claude --dangerously-skip-permissions' Enter
+done
+[ -n "${in_docker[skg:1]:-}" ] && \
+  "${T[@]}" send-keys -t "=skg:1" './bash/start-servers &' Enter
+
+### 6. DONE
+"${T[@]}" set -g "$READY_FLAG" 1
+say "setup done; attaching to skg, window 2."
+attach_main

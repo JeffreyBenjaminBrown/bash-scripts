@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+### USAGE
+# Run
+#   myXfceWorkspaces
+# Needs wmctrl (sudo apt install wmctrl).
+#
+### TERMINOLOGY
+# Xfce calls them "workspaces". Its menus number them 1-10,
+# but wmctrl (used here) numbers them 0-9, in reading order:
+#   0 1 2 3 4
+#   5 6 7 8 9
+# This script uses the 0-9 numbers.
+#
+### WHAT IT DOES
+# workspace 0:          Firefox
+# workspaces 1,2,3,6:   Emacs and Kitty
+# Emacs on 1, 2, 3:     (desktop-change-dir "~/hodal/skg"), skg2, skg3
+# Kitty on 1:           runs myMainWorkflow (asks for your password)
+# Kitty on 2, 3:        waits until myMainWorkflow finishes, then runs
+#                       tmux -L main a -t skg2  (or skg3)
+# It launches the Kitty on workspace 1 last and then switches to it,
+# so that other windows opening don't steal focus while you type.
+#
+### HOW IT WORKS
+# For each program it notes the existing windows, starts the program,
+# waits for a new window of the right class, and moves that window
+# to its workspace with wmctrl.
+
+set -u
+
+MAIN_WORKFLOW="$HOME/bin/myMainWorkflow"
+READY_FLAG=@myMainWorkflowReady
+declare -A EMACS_DESKTOP_DIR=(
+  [1]="$HOME/hodal/skg"
+  [2]="$HOME/hodal/skg2"
+  [3]="$HOME/hodal/skg3"
+)
+
+die()  { echo "myXfceWorkspaces: ERROR: $*" >&2; exit 1; }
+warn() { echo "myXfceWorkspaces: WARNING: $*" >&2; }
+
+### GETTING WMCTRL
+# Only this script calls wmctrl, so it doesn't need to be on anyone's
+# PATH. If it isn't installed, fetch it into the Nix store and call it
+# by its full path. The environment stays untouched, so Firefox, Emacs
+# and the Kitties start exactly as they would otherwise.
+#
+# TODO : Once I have rebuilt NixOS with wmctrl,
+# remove this passage (as delimited by its surrounding double-newlines).
+if ! command -v wmctrl >/dev/null; then
+  WMCTRL_OUT=$(nix-build '<nixpkgs>' -A wmctrl --no-out-link 2>/dev/null) \
+    || WMCTRL_OUT=$(nix build nixpkgs#wmctrl --no-link --print-out-paths 2>/dev/null) \
+    || die "wmctrl isn't installed and couldn't be fetched from nixpkgs."
+  wmctrl() { "$WMCTRL_OUT/bin/wmctrl" "$@"; }
+fi
+
+for prog in wmctrl firefox emacs kitty tmux setsid; do
+  command -v "$prog" >/dev/null || die "$prog not found."
+done
+(( $(wmctrl -d | wc -l) >= 10 )) || die "fewer than 10 workspaces exist."
+
+# launch_on <workspace> <class-pattern> <timeout-seconds> <command...>
+# Sets LAST_ID to the new window's id.
+LAST_ID=
+launch_on() {
+  local ws=$1 pattern=$2 timeout=$3 before id end
+  shift 3
+  before=" $(wmctrl -l | awk '{print $1}' | tr '\n' ' ') "
+  setsid -f "$@" >/dev/null 2>&1
+  end=$((SECONDS + timeout))
+  while (( SECONDS < end )); do
+    while read -r id; do
+      if [[ $before != *" $id "* ]]; then
+        wmctrl -i -r "$id" -t "$ws"
+        LAST_ID=$id
+        return 0
+      fi
+    done < <(wmctrl -lx | awk -v pat="$pattern" 'tolower($3) ~ pat {print $1}')
+    sleep 0.2
+  done
+  warn "no new $pattern window after ${timeout}s; it may land on the wrong workspace."
+  return 1
+}
+
+# Shell code for the Kitties on workspaces 2 and 3.
+wait_and_attach() {
+  printf '%s' "echo 'Waiting for myMainWorkflow (workspace 1) to finish...'; \
+until [ \"\$(tmux -L main show -gqv $READY_FLAG 2>/dev/null)\" = 1 ]; do sleep 1; done; \
+tmux -L main a -t $1; exec bash"
+}
+
+launch_on 0 firefox 30 firefox
+
+for ws in 1 2 3 6; do
+  if [ -n "${EMACS_DESKTOP_DIR[$ws]:-}" ]; then
+    launch_on "$ws" emacs 60 emacs --eval "(desktop-change-dir \"${EMACS_DESKTOP_DIR[$ws]}\")"
+  else
+    launch_on "$ws" emacs 60 emacs
+  fi
+done
+
+launch_on 6 kitty 30 kitty
+launch_on 3 kitty 30 kitty bash -c "$(wait_and_attach skg3)"
+launch_on 2 kitty 30 kitty bash -c "$(wait_and_attach skg2)"
+
+if launch_on 1 kitty 30 kitty bash -c "\"$MAIN_WORKFLOW\"; exec bash"; then
+  wmctrl -i -a "$LAST_ID"   # switch to workspace 1 and focus that Kitty
+else
+  wmctrl -s 1
+fi
