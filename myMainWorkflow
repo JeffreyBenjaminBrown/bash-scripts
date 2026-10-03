@@ -12,7 +12,8 @@
 # 3. Kills session 0.
 # 4. battery:0  -> clock | battery-notifications.sh 45 70 / watch acpi
 # 5. skg, skg2, skg3:
-#      windows 0 and 1: docker exec -it skg bash
+#      windows 0 and 1: docker exec -it <session> bash
+#                       (skg -> skg, skg2 -> skg2, skg3 -> skg3)
 #      window 0:        claude --dangerously-skip-permissions (in docker)
 #      window 2:        ssh-agent bash; ssh-add (password typed for you)
 #    skg window 1:      ./bash/start-servers & (in docker)
@@ -38,7 +39,7 @@ set -u
 ### SETTINGS
 SERVER=main
 T=(tmux -L "$SERVER")
-DOCKER_CONTAINER=skg
+# Each session's docker container has the same name as the session.
 SKG_SESSIONS=(skg skg2 skg3)
 READY_FLAG=@myMainWorkflowReady
 # How your "Alt-J h" split is done. tmux's -h puts the new pane to the
@@ -103,8 +104,13 @@ echo "window 2 of sessions ${SKG_SESSIONS[*]}."
 read -rsp "Password: " PW; echo
 [ -n "$PW" ] || die "empty password."
 
-if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$DOCKER_CONTAINER"; then
-  warn "docker container '$DOCKER_CONTAINER' doesn't appear to be running."
+running=$(docker ps --format '{{.Names}}' 2>/dev/null)
+missing=()
+for s in "${SKG_SESSIONS[@]}"; do
+  grep -qx "$s" <<<"$running" || missing+=("$s")
+done
+if (( ${#missing[@]} )); then
+  warn "docker container(s) not running: ${missing[*]}"
   read -rp "Continue anyway? [y/N] " answer
   [[ $answer == [yY]* ]] || exit 1
 fi
@@ -141,7 +147,7 @@ p2=$("${T[@]}" split-window "$SPLIT_SECOND" -t "$p1" -P -F '#{pane_id}')
 say "entering docker and starting ssh-agent in ${SKG_SESSIONS[*]}..."
 for s in "${SKG_SESSIONS[@]}"; do
   for w in 0 1; do
-    "${T[@]}" send-keys -t "=$s:$w" "docker exec -it $DOCKER_CONTAINER bash" Enter
+    "${T[@]}" send-keys -t "=$s:$w" "docker exec -it $s bash" Enter
   done
   "${T[@]}" send-keys -t "=$s:2" 'ssh-agent bash' Enter
   sleep 0.5
