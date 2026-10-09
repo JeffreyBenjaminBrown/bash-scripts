@@ -5,6 +5,7 @@
 # (myXfceWorkspaces runs it for you in the Kitty on workspace 1.)
 #
 ### WHAT IT DOES
+# 0. docker start skg skg2 skg3 (even if the tmux server is already up).
 # 1. Asks for your Xfce password, which it uses to answer ssh-add.
 # 2. Starts the tmux server "main" DETACHED, the way myTmux would
 #    (same sed on ~/.tmux.conf), and waits for resurrect/continuum
@@ -20,6 +21,12 @@
 # 6. Sets the server option @myMainWorkflowReady to 1
 #    (the Kitties on workspaces 2 and 3 wait for this),
 #    then attaches to session skg, window 2.
+#    In the background, once myXfceWorkspaces' Emacs windows have also
+#    finished (see EMACS_DONE_DIR), it dings: then everything is ready.
+#
+### WAITING
+# The script never sleeps for a fixed time. Each wait polls for the
+# thing it's waiting for, and gives up after a timeout (with a warning).
 #
 ### WHY NOT JUST CALL myTmux?
 # myTmux attaches immediately, so nothing after it would run
@@ -46,9 +53,15 @@ READY_FLAG=@myMainWorkflowReady
 # right; -v puts it below. Swap these if your binding does the opposite.
 SPLIT_FIRST=-h
 SPLIT_SECOND=-v
-# Seconds to wait after "docker exec" starts before typing into the
-# container's shell.
-DOCKER_SETTLE=2
+# A pane is at the container's shell prompt when its last non-blank
+# line matches this (grep) regex. The container's prompt is two lines,
+# like "~/host [2026-10-05 00:44:24]" and then a bare "$".
+CONTAINER_PROMPT_RE='\$$'
+# The ding at the end, played with pw-play.
+DING_SOUND=/run/current-system/sw/share/sounds/freedesktop/stereo/complete.oga
+# myXfceWorkspaces keeps this directory while its Emacs windows are
+# still loading, and deletes it when they're done.
+EMACS_DONE_DIR="${XDG_RUNTIME_DIR:-/tmp}/myXfceWorkspaces-emacs"
 # Used only if continuum doesn't restore the sessions by itself.
 RESURRECT_RESTORE="$HOME/.tmux/plugins/tmux-resurrect/scripts/restore.sh"
 
@@ -82,15 +95,72 @@ pane_is_in_docker() {
   [ "$("${T[@]}" display -p -t "$1" '#{pane_current_command}')" = docker ]
 }
 
-# True when the last non-blank line of the pane is ssh-add's prompt.
-pane_wants_passphrase() {
-  "${T[@]}" capture-pane -p -t "$1" \
-    | grep -v '^[[:space:]]*$' | tail -n1 | grep -qi 'passphrase'
+last_line() {
+  "${T[@]}" capture-pane -p -t "$1" | grep -v '^[[:space:]]*$' | tail -n1
 }
+
+# True when the last non-blank line of the pane is ssh-add's prompt.
+pane_wants_passphrase() { last_line "$1" | grep -qi 'passphrase'; }
+
+pane_at_container_prompt() {
+  pane_is_in_docker "$1" && last_line "$1" | grep -q -- "$CONTAINER_PROMPT_RE"
+}
+
+pane_runs_bash() {
+  [[ $("${T[@]}" display -p -t "$1" '#{pane_current_command}') == *bash* ]]
+}
+
+# True when a program (like the bash that "ssh-agent bash" starts)
+# is in the foreground, in place of the pane's own shell.
+pane_has_subshell() {
+  local pid fg
+  pid=$("${T[@]}" display -p -t "$1" '#{pane_pid}')
+  fg=$(ps -o tpgid= -p "$pid" 2>/dev/null | tr -d ' ')
+  [ -n "$fg" ] && [ "$fg" != "$pid" ]
+}
+
+# PANES lists every skg pane the script types into.
+PANES=()
+for s in "${SKG_SESSIONS[@]}"; do PANES+=("=$s:0" "=$s:1" "=$s:2"); done
+
+# True when every pane in PANES runs bash, and none has changed
+# since the last call (i.e. tmux-resurrect has finished with them).
+declare -A LAST_CAPTURE=()
+panes_settled() {
+  local p cap settled=0
+  for p in "${PANES[@]}"; do
+    pane_runs_bash "$p" || settled=1
+    cap=$("${T[@]}" capture-pane -p -t "$p")
+    [ "$cap" = "${LAST_CAPTURE[$p]:-}" ] || settled=1
+    LAST_CAPTURE[$p]=$cap
+  done
+  return $settled
+}
+
+# Play DING_SOUND; if that fails, ring the terminal bell.
+ding() { pw-play "$DING_SOUND" 2>/dev/null || printf '\a'; }
 
 ### PRECHECKS
 command -v tmux >/dev/null || die "tmux not found."
+command -v docker >/dev/null || die "docker not found."
 [ -n "${TMUX:-}" ] && die "run this from outside tmux."
+
+### 0. DOCKER CONTAINERS
+# This comes before the already-running check below, because that
+# check skips everything after it.
+# Starting a container that's already running is harmless.
+say "starting docker containers ${SKG_SESSIONS[*]}..."
+docker start "${SKG_SESSIONS[@]}" >/dev/null
+missing=()
+for s in "${SKG_SESSIONS[@]}"; do
+  [ "$(docker inspect -f '{{.State.Running}}' "$s" 2>/dev/null)" = true ] \
+    || missing+=("$s")
+done
+if (( ${#missing[@]} )); then
+  warn "docker container(s) not running: ${missing[*]}"
+  read -rp "Continue anyway? [y/N] " answer
+  [[ $answer == [yY]* ]] || exit 1
+fi
 
 if "${T[@]}" has-session 2>/dev/null; then
   say "tmux server '$SERVER' is already running; attaching without setup."
@@ -99,21 +169,12 @@ if "${T[@]}" has-session 2>/dev/null; then
 fi
 
 ### 1. PASSWORD
+# ~/.ssh is in the gocryptfs vault, so ssh-agent and ssh-add need it unlocked.
+[ -d "$HOME/.ssh" ] || die "~/.ssh isn't there. Unlock your gocryptfs vault, then run me again."
 echo "I need your Xfce password. It's used to run ssh-add in"
 echo "window 2 of sessions ${SKG_SESSIONS[*]}."
 read -rsp "Password: " PW; echo
 [ -n "$PW" ] || die "empty password."
-
-running=$(docker ps --format '{{.Names}}' 2>/dev/null)
-missing=()
-for s in "${SKG_SESSIONS[@]}"; do
-  grep -qx "$s" <<<"$running" || missing+=("$s")
-done
-if (( ${#missing[@]} )); then
-  warn "docker container(s) not running: ${missing[*]}"
-  read -rp "Continue anyway? [y/N] " answer
-  [[ $answer == [yY]* ]] || exit 1
-fi
 
 ### 2. START THE SERVER (the myTmux part, but detached)
 sed -i --follow-symlinks "s/^.*resurrect-dir.*\$/set -g @resurrect-dir \"~\/\.tmux\/resurrect\/$SERVER\"/g" ~/.tmux.conf
@@ -130,7 +191,8 @@ if ! all_sessions_present; then
   "${T[@]}" run-shell "$RESURRECT_RESTORE"
   wait_until 60 all_sessions_present || die "sessions still missing after restore."
 fi
-sleep 2   # let the restored panes' shells start
+# Wait until the restored panes have stopped changing.
+wait_until 60 panes_settled || warn "restored panes still changing after 60s; going ahead."
 
 ### 3. KILL SESSION 0
 "${T[@]}" has-session -t "=0" 2>/dev/null && "${T[@]}" kill-session -t "=0"
@@ -150,7 +212,8 @@ for s in "${SKG_SESSIONS[@]}"; do
     "${T[@]}" send-keys -t "=$s:$w" "docker exec -it $s bash" Enter
   done
   "${T[@]}" send-keys -t "=$s:2" 'ssh-agent bash' Enter
-  sleep 0.5
+  wait_until 10 pane_has_subshell "=$s:2" \
+    || warn "ssh-agent's shell didn't start in $s:2."
   "${T[@]}" send-keys -t "=$s:2" 'ssh-add' Enter
 done
 
@@ -167,18 +230,17 @@ done
 "${T[@]}" delete-buffer -b myMainWorkflow_pw 2>/dev/null
 unset PW
 
-# Wait for docker, then run things inside the containers.
+# Wait for each container's shell prompt, then run things there.
 declare -A in_docker=()
 for s in "${SKG_SESSIONS[@]}"; do
   for w in 0 1; do
-    if wait_until 30 pane_is_in_docker "=$s:$w"; then
+    if wait_until 30 pane_at_container_prompt "=$s:$w"; then
       in_docker[$s:$w]=1
     else
-      warn "$s:$w never entered docker; skipping its commands."
+      warn "$s:$w never reached the container's prompt; skipping its commands."
     fi
   done
 done
-sleep "$DOCKER_SETTLE"
 
 for s in "${SKG_SESSIONS[@]}"; do
   [ -n "${in_docker[$s:0]:-}" ] && \
@@ -190,4 +252,9 @@ done
 ### 6. DONE
 "${T[@]}" set -g "$READY_FLAG" 1
 say "setup done; attaching to skg, window 2."
+# Ding in the background, so attaching isn't delayed. It waits (up to
+# 10 minutes) for the Emacs windows, if they're still loading.
+( trap '' HUP
+  wait_until 600 bash -c "[ ! -d '$EMACS_DONE_DIR' ]"
+  ding ) >/dev/null 2>&1 &
 attach_main

@@ -12,6 +12,8 @@
 # This script uses the 0-9 numbers.
 #
 ### WHAT IT DOES
+# First it reminds you to unlock your gocryptfs vault (where ~/.ssh
+# lives), and stops unless you say it's unlocked.
 # workspace 0:          Firefox
 # workspaces 1,2,3,6:   Emacs and Kitty
 # Emacs on 1, 2, 3:     (desktop-change-dir "~/hodal/skg"), skg2, skg3
@@ -25,11 +27,25 @@
 # For each program it notes the existing windows, starts the program,
 # waits for a new window of the right class, and moves that window
 # to its workspace with wmctrl.
+#
+# Emacs needs more than that. Loading a desktop (desktop-change-dir)
+# can replace Emacs's first frame with a new one, which opens on
+# whatever workspace is current -- by then, usually workspace 1.
+# So a background loop checks once a second, and moves every window
+# owned by each Emacs process back to its workspace. Each Emacs
+# creates a file in EMACS_DONE_DIR when it has finished loading its
+# desktop. Once every Emacs has, and two checks in a row move nothing,
+# the loop stops and deletes EMACS_DONE_DIR. (If you move one of those
+# Emacs windows yourself before then, it will be moved back.)
+# myMainWorkflow waits for EMACS_DONE_DIR to disappear before it dings.
 
 set -u
 
 MAIN_WORKFLOW="$HOME/bin/myMainWorkflow"
 READY_FLAG=@myMainWorkflowReady
+# Give up pinning Emacs windows after this long, e.g. if an Emacs
+# crashed and never reported that its desktop was loaded.
+EMACS_PIN_TIMEOUT=600
 declare -A EMACS_DESKTOP_DIR=(
   [1]="$HOME/hodal/skg"
   [2]="$HOME/hodal/skg2"
@@ -38,6 +54,27 @@ declare -A EMACS_DESKTOP_DIR=(
 
 die()  { echo "myXfceWorkspaces: ERROR: $*" >&2; exit 1; }
 warn() { echo "myXfceWorkspaces: WARNING: $*" >&2; }
+
+### THE VAULT
+# ~/.ssh is in the gocryptfs vault, so myMainWorkflow's ssh-agent and
+# ssh-add fail unless the vault is unlocked. ~/.ssh is visible only
+# when it is.
+# Pressing Enter continues if ~/.ssh is visible, and aborts if not.
+if [ -d "$HOME/.ssh" ]; then
+  vault_hint="(~/.ssh is visible, so it looks unlocked.)"
+  choices="[Y/n]"; default=y
+else
+  vault_hint="(~/.ssh is NOT visible, so it looks locked.)"
+  choices="[y/N]"; default=n
+fi
+if [ -t 0 ]; then
+  echo "Reminder: unlock your gocryptfs vault first. $vault_hint"
+  read -rp "Is it unlocked? Continue? $choices " answer
+  [[ ${answer:-$default} == [yY]* ]] || die "aborted. Unlock the vault, then run me again."
+else
+  # No terminal to ask in, so go by whether ~/.ssh is visible.
+  [ -d "$HOME/.ssh" ] || die "~/.ssh isn't visible. Unlock your gocryptfs vault, then run me again."
+fi
 
 ### GETTING WMCTRL
 # Only this script calls wmctrl, so it doesn't need to be on anyone's
@@ -60,13 +97,17 @@ done
 (( $(wmctrl -d | wc -l) >= 10 )) || die "fewer than 10 workspaces exist."
 
 # launch_on <workspace> <class-pattern> <timeout-seconds> <command...>
-# Sets LAST_ID to the new window's id.
+# Sets LAST_ID to the new window's id, and LAST_PID to the program's pid.
 LAST_ID=
+LAST_PID=
 launch_on() {
   local ws=$1 pattern=$2 timeout=$3 before id end
   shift 3
   before=" $(wmctrl -l | awk '{print $1}' | tr '\n' ' ') "
-  setsid -f "$@" >/dev/null 2>&1
+  # Without -f, setsid doesn't fork here (a background job of a script
+  # isn't a process-group leader), so $! is the program's own pid.
+  setsid "$@" >/dev/null 2>&1 &
+  LAST_PID=$!
   end=$((SECONDS + timeout))
   while (( SECONDS < end )); do
     while read -r id; do
@@ -91,13 +132,61 @@ tmux -L main a -t $1; exec bash"
 
 launch_on 0 firefox 30 firefox
 
-for ws in 1 2 3 6; do
-  if [ -n "${EMACS_DESKTOP_DIR[$ws]:-}" ]; then
-    launch_on "$ws" emacs 60 emacs --eval "(desktop-change-dir \"${EMACS_DESKTOP_DIR[$ws]}\")"
+# A fixed name, so myMainWorkflow can find it. Clear out any left
+# over from an earlier run that was interrupted.
+EMACS_DONE_DIR="${XDG_RUNTIME_DIR:-/tmp}/myXfceWorkspaces-emacs"
+rm -rf "$EMACS_DONE_DIR"
+mkdir -p "$EMACS_DONE_DIR" || die "couldn't make $EMACS_DONE_DIR."
+
+# The Lisp each Emacs runs: load its desktop (if it has one), then,
+# even if that failed, create EMACS_DONE_DIR/<workspace> silently.
+emacs_eval() {
+  local done="$EMACS_DONE_DIR/$1" dir=${EMACS_DESKTOP_DIR[$1]:-}
+  local touch="(write-region \"\" nil \"$done\" nil 0)"
+  if [ -n "$dir" ]; then
+    printf '(unwind-protect (desktop-change-dir "%s") %s)' "$dir" "$touch"
   else
-    launch_on "$ws" emacs 60 emacs
+    printf '%s' "$touch"
   fi
+}
+
+declare -A EMACS_PID=()   # workspace -> pid of the Emacs launched there
+for ws in 1 2 3 6; do
+  launch_on "$ws" emacs 60 emacs --eval "$(emacs_eval "$ws")"
+  EMACS_PID[$ws]=$LAST_PID
 done
+
+all_emacs_done() {
+  local ws
+  for ws in "${!EMACS_PID[@]}"; do
+    [ -e "$EMACS_DONE_DIR/$ws" ] || return 1
+  done
+}
+
+# Once a second, move every window of each Emacs back to its workspace,
+# until they've all finished loading and stayed put. (See HOW IT WORKS.)
+pin_emacs() {
+  local end=$((SECONDS + EMACS_PIN_TIMEOUT)) quiet=0 moved id desk pid ws
+  while (( SECONDS < end )); do
+    moved=
+    while read -r id desk pid _; do
+      for ws in "${!EMACS_PID[@]}"; do
+        if [ "$pid" = "${EMACS_PID[$ws]}" ] && [ "$desk" != "$ws" ] && [ "$desk" != -1 ]; then
+          wmctrl -i -r "$id" -t "$ws"
+          moved=1
+        fi
+      done
+    done < <(wmctrl -lp)
+    if all_emacs_done && [ -z "$moved" ]; then
+      (( ++quiet >= 2 )) && break
+    else
+      quiet=0
+    fi
+    sleep 1
+  done
+  rm -rf "$EMACS_DONE_DIR"
+}
+( trap '' HUP; pin_emacs ) >/dev/null 2>&1 &
 
 launch_on 6 kitty 30 kitty
 launch_on 3 kitty 30 kitty bash -c "$(wait_and_attach skg3)"
