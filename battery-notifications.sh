@@ -30,7 +30,7 @@ unplug_message () { # PITFALL: Uses an argument, called $1.
     -t 180000          \
     "Battery Low (${1}%) and discharging"
   flash_screen
-  aplay -q ~/Audio/battery-low$suffix.wav
+  aplay -q ~/media-types/Audio/battery-low$suffix.wav
 }
 
 plug_message (){  # PITFALL: Uses an argument, called $1.
@@ -38,7 +38,7 @@ plug_message (){  # PITFALL: Uses an argument, called $1.
     -t 180000          \
     "Battery High (${1}%) and charging"
   flash_screen
-  aplay -q ~/Audio/battery-high$suffix.wav
+  aplay -q ~/media-types/Audio/battery-high$suffix.wav
 }
 
 while true; do

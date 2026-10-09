@@ -1,1 +1,1 @@
-aplay -q ~/Audio/"all done.wav"
+aplay -q ~/media-types/Audio/"all done.wav"
